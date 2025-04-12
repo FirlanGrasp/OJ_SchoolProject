@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuoj.mapper.TestMapper">
+
+    <resultMap id="BaseResultMap" type="com.yupi.yuoj.model.entity.Test">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="title" column="title" jdbcType="VARCHAR"/>
+            <result property="content" column="content" jdbcType="VARCHAR"/>
+            <result property="startTime" column="startTime" jdbcType="VARCHAR"/>
+            <result property="endTime" column="endTime" jdbcType="VARCHAR"/>
+            <result property="studentVisible" column="studentVisible" jdbcType="TINYINT"/>
+            <result property="rankVisible" column="rankVisible" jdbcType="TINYINT"/>
+            <result property="codeShare" column="codeShare" jdbcType="TINYINT"/>
+            <result property="examType" column="examType" jdbcType="TINYINT"/>
+            <result property="totalRequiredScore" column="totalRequiredScore" jdbcType="INTEGER"/>
+            <result property="questionsId" column="questionsId" jdbcType="VARCHAR"/>
+            <result property="creatUserId" column="creatUserId" jdbcType="BIGINT"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,title,content,
+        startTime,endTime,studentVisible,
+        rankVisible,codeShare,examType,totalRequiredScore,
+        questionsId,creatUserId,createTime,
+        updateTime,isDelete
+    </sql>
+</mapper>
