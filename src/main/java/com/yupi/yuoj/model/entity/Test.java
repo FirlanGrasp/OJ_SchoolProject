@@ -47,27 +47,27 @@ public class Test implements Serializable {
      * 是否对学生可见
      */
     @TableField(value = "studentVisible")
-    private Integer studentVisible;
+    private Boolean studentVisible;
 
     /**
      * 是否显示排行榜
      */
     @TableField(value = "rankVisible")
-    private Integer rankVisible;
+    private Boolean rankVisible;
 
 
     /**
-     * 是否显示排行榜
+     * 是否支持分享
      */
     @TableField(value = "codeShare")
-    private Integer codeShare;
+    private Boolean codeShare;
 
 
     /**
      * 测验类型(false=测验，true=考试)
      */
     @TableField(value = "examType")
-    private Integer examType;
+    private Boolean examType;
 
     /**
      * 总分要求(默认100分)

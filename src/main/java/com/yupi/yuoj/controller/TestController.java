@@ -192,9 +192,8 @@ public class TestController {
     @PostMapping("/get")
     public BaseResponse<TestAddRequest> getTestById(@RequestParam long number){
         Test test = testService.getById(number);
-        List<Long> questionIds = GSON.fromJson(test.getQuestionsId(), new TypeToken<List<Long>>(){}.getType());
-        List<TestQuestionsRequest> testQuestionsRequestStream = questionIds.stream().map(questionId -> {
-            TestQuestions question = testQuestionService.getOne(new LambdaQueryWrapper<TestQuestions>().eq(TestQuestions::getQuestionId, questionId));
+        List<TestQuestions> questions = testQuestionService.list(new LambdaQueryWrapper<TestQuestions>().eq(TestQuestions::getTestId, number));
+        List<TestQuestionsRequest> testQuestionsRequestStream = questions.stream().map(question -> {
             TestQuestionsRequest testQuestionsRequest = new TestQuestionsRequest();
             BeanUtils.copyProperties(question, testQuestionsRequest);
             testQuestionsRequest.setId(question.getQuestionId());

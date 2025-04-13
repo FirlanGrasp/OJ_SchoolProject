@@ -35,18 +35,18 @@ public class TestPageVO {
     /**
      * 是否对学生可见
      */
-    private Integer studentVisible;
+    private Boolean studentVisible;
 
     /**
      * 是否显示排行榜
      */
-    private Integer rankVisible;
+    private Boolean rankVisible;
 
 
     /**
      * 测验类型(false=测验，true=考试)
      */
-    private Integer examType;
+    private Boolean examType;
 
     /**
      * 总分要求(默认100分)
