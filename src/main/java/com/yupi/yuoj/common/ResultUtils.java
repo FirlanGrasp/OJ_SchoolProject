@@ -57,4 +57,14 @@ public class ResultUtils {
     public static BaseResponse error(ErrorCode errorCode, String message) {
         return new BaseResponse(errorCode.getCode(), null, message);
     }
+
+    /**
+     * 失败
+     *
+     * @param errorCode
+     * @return
+     */
+    public static BaseResponse error(ErrorCode errorCode, String message, Object data) {
+        return new BaseResponse(errorCode.getCode(), data, message);
+    }
 }

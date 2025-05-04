@@ -10,12 +10,7 @@ import com.yupi.yuoj.config.WxOpenConfig;
 import com.yupi.yuoj.constant.UserConstant;
 import com.yupi.yuoj.exception.BusinessException;
 import com.yupi.yuoj.exception.ThrowUtils;
-import com.yupi.yuoj.model.dto.user.UserAddRequest;
-import com.yupi.yuoj.model.dto.user.UserLoginRequest;
-import com.yupi.yuoj.model.dto.user.UserQueryRequest;
-import com.yupi.yuoj.model.dto.user.UserRegisterRequest;
-import com.yupi.yuoj.model.dto.user.UserUpdateMyRequest;
-import com.yupi.yuoj.model.dto.user.UserUpdateRequest;
+import com.yupi.yuoj.model.dto.user.*;
 import com.yupi.yuoj.model.entity.User;
 import com.yupi.yuoj.model.vo.LoginUserVO;
 import com.yupi.yuoj.model.vo.UserVO;
@@ -93,10 +88,42 @@ public class UserController {
         String userName = userRegisterRequest.getUserName();
         String id = userRegisterRequest.getId();
         if (StringUtils.isAnyBlank(userAccount, userRole, id)) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         long result = userService.userRegister(id, userAccount, userRole, userName);
         return ResultUtils.success(result);
+    }
+
+    /**
+     * 用户批量注册
+     */
+    @PostMapping("/add/batch")
+    public BaseResponse<?> addUserBatchUsingPost(@RequestBody List<UserRegisterRequest> userRegisterRequestList) {
+        if (userRegisterRequestList == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        UserRegisterBatchResponse userRegisterBatchResponse = new UserRegisterBatchResponse();
+        userRegisterRequestList.forEach(userRegisterRequest -> {
+            String userAccount = userRegisterRequest.getUserAccount();
+            String userRole = userRegisterRequest.getUserRole();
+            String userName = userRegisterRequest.getUserName();
+            String id = userRegisterRequest.getId();
+            try {
+                long result = userService.userRegister(id, userAccount, userRole, userName);
+                userRegisterBatchResponse.setSuccessCount(userRegisterBatchResponse.getSuccessCount() + 1);
+            } catch (Exception e) {
+                userRegisterBatchResponse.setFailCount(userRegisterBatchResponse.getFailCount() + 1);
+                UserRegisterBatchResponse.FailDetail detail = userRegisterBatchResponse.new FailDetail();
+                detail.setId(id);
+                detail.setReason(e.getMessage());
+                userRegisterBatchResponse.addFailDetail(detail);
+            }
+        });
+        if(userRegisterBatchResponse.getFailCount() > 0){
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "存在插入失败的用户" ,userRegisterBatchResponse);
+        }
+        return ResultUtils.success(userRegisterBatchResponse);
     }
 
 
