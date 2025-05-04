@@ -31,3 +31,11 @@ create table if not exists test_question
     isDelete    tinyint  default 0                 not null comment '是否删除',
     index idx_userId (id)
 ) comment '测验关联问题表' collate = utf8mb4_unicode_ci;
+
+alter table user
+    add number varchar(255) not null comment '学号，默认密码'  after userAccount;
+
+alter table user
+    add constraint user_pk
+        unique (number);
+

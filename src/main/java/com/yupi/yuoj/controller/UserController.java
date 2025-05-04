@@ -56,6 +56,27 @@ public class UserController {
 
     // region 登录相关
 
+//    /**
+//     * 用户注册
+//     *
+//     * @param userRegisterRequest
+//     * @return
+//     */
+//    @PostMapping("/register")
+//    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
+//        if (userRegisterRequest == null) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+//        }
+//        String userAccount = userRegisterRequest.getUserAccount();
+//        String userPassword = userRegisterRequest.getUserPassword();
+//        String checkPassword = userRegisterRequest.getCheckPassword();
+//        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
+//            return null;
+//        }
+//        long result = userService.userRegister(userAccount, userPassword, checkPassword);
+//        return ResultUtils.success(result);
+//    }
+
     /**
      * 用户注册
      *
@@ -68,14 +89,16 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         String userAccount = userRegisterRequest.getUserAccount();
-        String userPassword = userRegisterRequest.getUserPassword();
-        String checkPassword = userRegisterRequest.getCheckPassword();
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
+        String userRole = userRegisterRequest.getUserRole();
+        String userName = userRegisterRequest.getUserName();
+        String id = userRegisterRequest.getId();
+        if (StringUtils.isAnyBlank(userAccount, userRole, id)) {
             return null;
         }
-        long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        long result = userService.userRegister(id, userAccount, userRole, userName);
         return ResultUtils.success(result);
     }
+
 
     /**
      * 用户登录
