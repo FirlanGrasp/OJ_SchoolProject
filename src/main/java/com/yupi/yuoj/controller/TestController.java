@@ -17,6 +17,7 @@ import com.yupi.yuoj.model.entity.*;
 import com.yupi.yuoj.model.vo.TestPageVO;
 import com.yupi.yuoj.service.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.BeanUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -207,17 +208,31 @@ public class TestController {
     }
 
     /**
-     * 分页查询 测验信息
-     * @param current
-     * @param pageSize
-     * @return
+     * 分页查询测验信息（支持按标题模糊匹配）
+     * @param current 当前页
+     * @param pageSize 每页大小
+     * @param title 可选标题关键词（匹配测验标题）
      */
     @PostMapping("/list/page")
-    public BaseResponse<IPage<TestPageVO>> listTestByPage(@RequestParam int current, @RequestParam int pageSize){
-        // 查询原始数据
-        Page<Test> testPage = testService.page(new Page<>(current, pageSize));
+    public BaseResponse<IPage<TestPageVO>> listTestByPage(
+            @RequestParam int current,
+            @RequestParam int pageSize,
+            @RequestParam(required = false) String title) {  // 关键修改：添加可选参数
 
-        // 转换为 VO
+        QueryWrapper<Test> queryWrapper = new QueryWrapper<>();
+
+        // 添加标题模糊匹配条件（如果参数不为空）
+        if (StringUtils.isNotBlank(title)) {
+            queryWrapper.like("title", title);  // 假设字段名为title
+        }
+
+        // 构建分页查询条件
+        Page<Test> testPage = testService.page(
+                new Page<>(current, pageSize),
+                queryWrapper // 传入title参数
+        );
+
+        // 转换为VO（保持原有逻辑）
         IPage<TestPageVO> testPageVOPage = testPage.convert(test -> {
             TestPageVO testPageVO = new TestPageVO();
             BeanUtils.copyProperties(test, testPageVO);
@@ -227,7 +242,6 @@ public class TestController {
 
         return ResultUtils.success(testPageVOPage);
     }
-
     /**
      * 删除测验信息
      */
