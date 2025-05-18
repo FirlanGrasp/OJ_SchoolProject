@@ -18,12 +18,12 @@ public interface UserConstant {
     /**
      * 默认角色
      */
-    String DEFAULT_ROLE = "user";
+    String DEFAULT_ROLE = "student";
 
     /**
      * 管理员角色
      */
-    String ADMIN_ROLE = "admin";
+    String ADMIN_ROLE = "teacher";
 
     /**
      * 被封号

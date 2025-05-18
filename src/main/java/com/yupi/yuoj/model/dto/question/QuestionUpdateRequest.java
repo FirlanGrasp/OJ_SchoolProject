@@ -50,5 +50,11 @@ public class QuestionUpdateRequest implements Serializable {
      */
     private JudgeConfig judgeConfig;
 
+
+    /**
+     * 是否审核
+     */
+    private Boolean isReviewed;
+
     private static final long serialVersionUID = 1L;
 }

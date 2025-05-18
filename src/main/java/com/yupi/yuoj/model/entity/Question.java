@@ -90,6 +90,12 @@ public class Question implements Serializable {
     @TableLogic
     private Integer isDelete;
 
+
+    /**
+     * 是否审核
+     */
+    private Boolean isReviewed;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

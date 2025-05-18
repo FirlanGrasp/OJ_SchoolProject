@@ -2,6 +2,7 @@ package com.yupi.yuoj.model.vo;
 
 import cn.hutool.json.JSONUtil;
 import com.google.gson.reflect.TypeToken;
+import com.yupi.yuoj.model.dto.question.JudgeCase;
 import com.yupi.yuoj.model.dto.question.JudgeConfig;
 import com.yupi.yuoj.model.entity.Question;
 import lombok.Data;
@@ -53,6 +54,11 @@ public class QuestionVO implements Serializable {
     private JudgeConfig judgeConfig;
 
     /**
+     * 判题用例
+     */
+    private List<JudgeCase> judgeCase;
+
+    /**
      * 点赞数
      */
     private Integer thumbNum;
@@ -81,6 +87,12 @@ public class QuestionVO implements Serializable {
      * 创建题目人的信息
      */
     private UserVO userVO;
+
+
+    /**
+     * 是否审核
+     */
+    private Boolean isReviewed;
 
     /**
      * 包装类转对象
@@ -121,6 +133,8 @@ public class QuestionVO implements Serializable {
         questionVO.setTags(tagList);
         String judgeConfigStr = question.getJudgeConfig();
         questionVO.setJudgeConfig(JSONUtil.toBean(judgeConfigStr, JudgeConfig.class));
+        String judgeCaseStr = question.getJudgeCase();
+        questionVO.setJudgeCase(JSONUtil.toList(judgeCaseStr, JudgeCase.class));
         return questionVO;
     }
 

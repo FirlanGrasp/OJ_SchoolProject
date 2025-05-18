@@ -39,3 +39,6 @@ alter table user
     add constraint user_pk
         unique (number);
 
+ALTER TABLE question
+    ADD COLUMN isReviewed BOOLEAN NOT NULL DEFAULT FALSE;
+
