@@ -42,6 +42,7 @@ alter table user
 ALTER TABLE question
     ADD COLUMN isReviewed BOOLEAN NOT NULL DEFAULT FALSE;
 
+# 5.30-----------------------------------------------------------------------------------------
 # 班级表
 CREATE TABLE class
 (
@@ -62,12 +63,16 @@ CREATE TABLE class_student
         primary key,
     classId    bigint                                 not null comment '班级ID',
     studentId  bigint                                 not null comment '学生ID',
+    userAccount varchar(256)                          not null comment '学生账号(真实姓名)',
+    number      varchar(255)                          not null comment '学号',
 
     createTime datetime default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     isDelete   tinyint  default 0                 not null comment '是否删除',
     constraint class_student_pk
-        unique (classId, studentId)
+        unique (classId, studentId),
+    constraint class_student_number_pk
+        unique (classId, number)
 ) comment '班级学生关联表' collate = utf8mb4_unicode_ci;
 
 -- 添加外键约束
