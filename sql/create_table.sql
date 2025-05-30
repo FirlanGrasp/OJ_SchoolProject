@@ -9,10 +9,12 @@ create database if not exists yuoj;
 use yuoj;
 
 -- 用户表
-create table if not exists user
+create table user
 (
-    id           bigint auto_increment comment 'id' primary key,
-    userAccount  varchar(256)                           not null comment '账号',
+    id           bigint auto_increment comment 'id'
+        primary key,
+    userAccount  varchar(256)                           not null comment '真实姓名',
+    number       varchar(255)                           not null comment '登录账号，学号，默认密码',
     userPassword varchar(512)                           not null comment '密码',
     unionId      varchar(256)                           null comment '微信开放平台id',
     mpOpenId     varchar(256)                           null comment '公众号openId',
@@ -23,8 +25,13 @@ create table if not exists user
     createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     isDelete     tinyint      default 0                 not null comment '是否删除',
-    index idx_unionId (unionId)
-) comment '用户' collate = utf8mb4_unicode_ci;
+    constraint user_pk
+        unique (number)
+)
+    comment '用户' collate = utf8mb4_unicode_ci;
+
+create index idx_unionId
+    on user (unionId);
 
 -- 题目表
 create table if not exists question

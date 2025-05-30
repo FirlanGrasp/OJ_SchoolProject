@@ -41,12 +41,12 @@ public interface UserService extends IService<User> {
     /**
      * 用户登录
      *
-     * @param userAccount  用户账户
+     * @param number  用户账号
      * @param userPassword 用户密码
      * @param request
      * @return 脱敏后的用户信息
      */
-    LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request);
+    LoginUserVO userLogin(String number, String userPassword, HttpServletRequest request);
 
     /**
      * 用户登录（微信开放平台）
