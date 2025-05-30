@@ -42,3 +42,37 @@ alter table user
 ALTER TABLE question
     ADD COLUMN isReviewed BOOLEAN NOT NULL DEFAULT FALSE;
 
+# 班级表
+CREATE TABLE class
+(
+    id          bigint auto_increment comment '班级ID'
+        primary key,
+    className   varchar(256)                           not null comment '班级名称',
+    createTime  datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
+    updateTime  datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete    tinyint      default 0                 not null comment '是否删除',
+    constraint class_pk
+        unique (className)
+) comment '班级表' collate = utf8mb4_unicode_ci;
+
+-- 班级-学生关联表
+CREATE TABLE class_student
+(
+    id         bigint auto_increment comment 'ID'
+        primary key,
+    classId    bigint                                 not null comment '班级ID',
+    studentId  bigint                                 not null comment '学生ID',
+
+    createTime datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    updateTime datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete   tinyint  default 0                 not null comment '是否删除',
+    constraint class_student_pk
+        unique (classId, studentId)
+) comment '班级学生关联表' collate = utf8mb4_unicode_ci;
+
+-- 添加外键约束
+ALTER TABLE class_student
+    ADD CONSTRAINT fk_class_student_classId FOREIGN KEY (classId) REFERENCES class (id);
+ALTER TABLE class_student
+    ADD CONSTRAINT fk_class_student_studentId FOREIGN KEY (studentId) REFERENCES user (id);
+
