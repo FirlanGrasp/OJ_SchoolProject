@@ -17,4 +17,9 @@ public class JudgeCase {
      * 输出用例
      */
     private String output;
+
+    /**
+     * 是否为后台样例
+     */
+    private Boolean isBackendExample;
 }
