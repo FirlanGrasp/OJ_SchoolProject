@@ -14,5 +14,5 @@ public class ClassCreateRequest {
     /**
      * 学生学号
      */
-    private List<String> studentIds;
+    private List<String> numbers;
 }

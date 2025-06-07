@@ -2,19 +2,21 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.yupi.yuoj.mapper.Class_studentMapper">
+<mapper namespace="com.yupi.yuoj.mapper.ClassStudentMapper">
 
-    <resultMap id="BaseResultMap" type="com.yupi.yuoj.model.entity.Class_student">
+    <resultMap id="BaseResultMap" type="com.yupi.yuoj.model.entity.ClassStudent">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="classId" column="classId" jdbcType="BIGINT"/>
             <result property="studentId" column="studentId" jdbcType="BIGINT"/>
+            <result property="userAccount" column="userAccount" jdbcType="VARCHAR"/>
+            <result property="number" column="number" jdbcType="VARCHAR"/>
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
             <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,classId,studentId,
+        id,classId,studentId,userAccount,number,
         createTime,updateTime,isDelete
     </sql>
 </mapper>

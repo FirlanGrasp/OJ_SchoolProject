@@ -14,7 +14,7 @@ import lombok.Data;
  */
 @TableName(value ="class_student")
 @Data
-public class Class_student implements Serializable {
+public class ClassStudent implements Serializable {
     /**
      * ID
      */
@@ -32,6 +32,18 @@ public class Class_student implements Serializable {
      */
     @TableField(value = "studentId")
     private Long studentId;
+
+    /**
+     * 学生真实姓名
+     */
+    @TableField(value = "userAccount")
+    private String userAccount;
+
+    /**
+     * 学生学号
+     */
+    @TableField(value = "number")
+    private String number;
 
     /**
      * 创建时间
