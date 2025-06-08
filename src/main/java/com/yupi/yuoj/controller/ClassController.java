@@ -140,10 +140,49 @@ public class ClassController {
      */
     @PostMapping("/delete")
     @Transactional(rollbackFor = Exception.class)
-    public BaseResponse<?> deleteClassUsingPost(String id) {
+    public BaseResponse<?> deleteClassUsingPost(Long id) {
         classService.removeById(id);
         classStudentService.remove(new LambdaQueryWrapper<ClassStudent>().eq(ClassStudent::getClassId, id));
         return ResultUtils.success("删除成功");
+    }
+
+    /**
+     * 增加学生
+     * @param classId
+     * @param number
+     * @return
+     */
+    @PostMapping("/addStudent")
+    @Transactional(rollbackFor = Exception.class)
+    public BaseResponse<ClassesListVO> addStudentToClassUsingPost(Long classId, String number) {
+        Classes classEntity = classService.getById(classId);
+        if ( classEntity == null ) { throw new BusinessException(ErrorCode.PARAMS_ERROR ,"班级不存在");}
+        User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getNumber, number));
+        if (user == null) {throw new BusinessException(ErrorCode.PARAMS_ERROR ,"学生不存在");}
+
+        ClassStudent classStudent = new ClassStudent();
+        classStudent.setClassId(classId);
+        User student = userService.getOne(new QueryWrapper<User>().eq("number", number));
+        classStudent.setStudentId(student.getId());
+        classStudent.setUserAccount(student.getUserAccount());
+        classStudent.setNumber(number);
+        classStudentService.save(classStudent);
+
+        //封装结果：班级信息
+        ClassesListVO classesListVO = new ClassesListVO();
+
+        BeanUtils.copyProperties(classEntity, classesListVO);
+        //获取学生信息
+        List<ClassStudent> classStudentList = classStudentService.lambdaQuery().eq(ClassStudent::getClassId, classId).list();
+        if (CollectionUtils.isNotEmpty(classStudentList)) {
+            List<StudentVO> studentVOList = classStudentList.stream().map(studentObj -> {
+                StudentVO studentVO = new StudentVO();
+                BeanUtils.copyProperties(studentObj, studentVO);
+                return studentVO;
+            }).collect(Collectors.toList());
+            classesListVO.setStudents(studentVOList);
+        }
+        return ResultUtils.success(classesListVO);
     }
 
 }
