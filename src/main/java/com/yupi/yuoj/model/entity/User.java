@@ -26,7 +26,7 @@ public class User implements Serializable {
     private Long id;
 
     /**
-     * 用户账号
+     * 用户姓名
      */
     private String userAccount;
 

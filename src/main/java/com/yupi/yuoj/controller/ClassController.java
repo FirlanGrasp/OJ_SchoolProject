@@ -4,16 +4,16 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.yupi.yuoj.common.BaseResponse;
 import com.yupi.yuoj.common.ErrorCode;
 import com.yupi.yuoj.common.ResultUtils;
 import com.yupi.yuoj.exception.BusinessException;
 import com.yupi.yuoj.model.dto.Classes.ClassCreateRequest;
+import com.yupi.yuoj.model.dto.user.UserPageRequest;
 import com.yupi.yuoj.model.entity.*;
-import com.yupi.yuoj.model.vo.ClassesListVO;
-import com.yupi.yuoj.model.vo.ClassesVO;
-import com.yupi.yuoj.model.vo.StudentVO;
+import com.yupi.yuoj.model.vo.*;
 import com.yupi.yuoj.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -183,6 +183,111 @@ public class ClassController {
             classesListVO.setStudents(studentVOList);
         }
         return ResultUtils.success(classesListVO);
+    }
+
+    /**
+     * 移除学生
+     * @param classId
+     * @param number
+     * @return
+     */
+    @PostMapping("/removeStudent")
+    @Transactional(rollbackFor = Exception.class)
+    public BaseResponse<ClassesListVO> removeStudentFromClassUsingPost(Long classId, String number) {
+        // 验证班级是否存在
+        Classes classEntity = classService.getById(classId);
+        if (classEntity == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "班级不存在");
+        }
+
+        // 验证学生是否存在
+        User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getNumber, number));
+        if (user == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "学生不存在");
+        }
+
+        // 检查学生是否在班级中
+        ClassStudent classStudent = classStudentService.getOne(
+                new LambdaQueryWrapper<ClassStudent>()
+                        .eq(ClassStudent::getClassId, classId)
+                        .eq(ClassStudent::getNumber, number)
+        );
+
+        if (classStudent == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "该学生不在班级中");
+        }
+
+        // 移除学生
+        boolean removed = classStudentService.remove(
+                new LambdaQueryWrapper<ClassStudent>()
+                        .eq(ClassStudent::getClassId, classId)
+                        .eq(ClassStudent::getStudentId, user.getId())
+        );
+
+        if (!removed) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "移除学生失败");
+        }
+
+        // 封装结果：班级信息
+        ClassesListVO classesListVO = new ClassesListVO();
+        BeanUtils.copyProperties(classEntity, classesListVO);
+
+        // 获取更新后的学生列表
+        List<ClassStudent> classStudentList = classStudentService.lambdaQuery()
+                .eq(ClassStudent::getClassId, classId)
+                .list();
+
+        if (CollectionUtils.isNotEmpty(classStudentList)) {
+            List<StudentVO> studentVOList = classStudentList.stream().map(studentObj -> {
+                StudentVO studentVO = new StudentVO();
+                BeanUtils.copyProperties(studentObj, studentVO);
+                return studentVO;
+            }).collect(Collectors.toList());
+            classesListVO.setStudents(studentVOList);
+        }
+
+        return ResultUtils.success(classesListVO);
+    }
+
+    /**
+     * 分页查询学生列表
+     * @param userPageRequest
+     * @return
+     */
+    @PostMapping("/list/page")
+    public BaseResponse<PageVO<ClassSearchUserVO>> listUserByPageUsingPost(@RequestBody UserPageRequest userPageRequest) {
+        if (userPageRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 设置默认分页参数
+        long current = userPageRequest.getCurrent() == null ? 1 : userPageRequest.getCurrent();
+        long pageSize = userPageRequest.getPageSize() == null ? 10 : userPageRequest.getPageSize();
+
+        // 创建分页对象
+        Page<User> page = new Page<>(current, pageSize);
+
+        // 构建查询条件：只查询角色为student的用户
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getUserRole, "student");
+
+        // 执行分页查询
+        Page<User> userPage = userService.page(page, queryWrapper);
+
+        // 转换结果格式
+        Page<ClassSearchUserVO> userVOPage = new Page<>(current, pageSize, userPage.getTotal());
+        if (CollectionUtils.isNotEmpty(userPage.getRecords())) {
+            List<ClassSearchUserVO> userVOList = userPage.getRecords().stream().map(user -> {
+                ClassSearchUserVO userVO = new ClassSearchUserVO();
+                BeanUtils.copyProperties(user, userVO);
+                return userVO;
+            }).collect(Collectors.toList());
+            userVOPage.setRecords(userVOList);
+        }
+        PageVO<ClassSearchUserVO> pageVO = new PageVO<>();
+        BeanUtils.copyProperties(userVOPage, pageVO);
+
+        return ResultUtils.success(pageVO);
     }
 
 }
