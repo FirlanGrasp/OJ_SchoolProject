@@ -80,3 +80,22 @@ create table class_student
 )
     comment '班级学生关联表' collate = utf8mb4_unicode_ci;
 
+
+-- 测验-班级关联表
+create table test_class
+(
+    id          bigint auto_increment comment 'ID'
+        primary key,
+    testId      bigint                             not null comment '测验ID',
+    classId     bigint                             not null comment '班级ID',
+    createTime  datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    updateTime  datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete    tinyint  default 0                 not null comment '是否删除',
+    constraint test_class_pk
+        unique (testId, classId),
+    constraint fk_test_class_testId
+        foreign key (testId) references test (id),
+    constraint fk_test_class_classId
+        foreign key (classId) references class (id)
+)
+    comment '测验-班级关联表' collate = utf8mb4_unicode_ci;
