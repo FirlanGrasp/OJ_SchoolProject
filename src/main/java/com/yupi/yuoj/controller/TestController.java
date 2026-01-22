@@ -11,6 +11,7 @@ import com.yupi.yuoj.common.ErrorCode;
 import com.yupi.yuoj.common.ResultUtils;
 import com.yupi.yuoj.exception.BusinessException;
 import com.yupi.yuoj.model.dto.test.TestAddRequest;
+import com.yupi.yuoj.model.dto.test.TestGetClassesRequest;
 import com.yupi.yuoj.model.dto.test.TestQuestionsRequest;
 import com.yupi.yuoj.model.dto.test.TestSetClassesRequest;
 import com.yupi.yuoj.model.dto.test.TestUpdateRequest;
@@ -321,5 +322,44 @@ public class TestController {
         }
 
         return ResultUtils.success(true, "设置测验可见班级成功！");
+    }
+
+    /**
+     * 查询测验的可见班级列表
+     * 
+     * @param testGetClassesRequest
+     * @return
+     */
+    @PostMapping("/getClasses")
+    public BaseResponse<List<Long>> getClassesByTestUsingPost(
+            @RequestBody TestGetClassesRequest testGetClassesRequest) {
+        // 判断请求参数是否为空
+        if (testGetClassesRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空！");
+        }
+
+        Long testId = testGetClassesRequest.getTestId();
+
+        // 验证测验ID
+        if (testId == null || testId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "测验ID不能为空！");
+        }
+
+        // 验证测验是否存在
+        Test test = testService.getById(testId);
+        if (test == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "测验不存在！");
+        }
+
+        // 查询该测验关联的所有班级ID
+        List<TestClass> testClassList = testClassService.list(new LambdaQueryWrapper<TestClass>()
+                .eq(TestClass::getTestId, testId));
+
+        // 提取班级ID列表
+        List<Long> classIds = testClassList.stream()
+                .map(TestClass::getClassId)
+                .collect(Collectors.toList());
+
+        return ResultUtils.success(classIds, "查询成功！");
     }
 }
