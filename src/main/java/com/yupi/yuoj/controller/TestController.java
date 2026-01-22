@@ -12,6 +12,7 @@ import com.yupi.yuoj.common.ResultUtils;
 import com.yupi.yuoj.exception.BusinessException;
 import com.yupi.yuoj.model.dto.test.TestAddRequest;
 import com.yupi.yuoj.model.dto.test.TestQuestionsRequest;
+import com.yupi.yuoj.model.dto.test.TestSetClassesRequest;
 import com.yupi.yuoj.model.dto.test.TestUpdateRequest;
 import com.yupi.yuoj.model.entity.*;
 import com.yupi.yuoj.model.vo.TestPageVO;
@@ -49,12 +50,17 @@ public class TestController {
     @Resource
     private UserService userService;
 
+    @Resource
+    private TestClassService testClassService;
+
+    @Resource
+    private ClassService classService;
 
     private final static Gson GSON = new Gson();
 
-
     /**
      * 增加测验数据
+     * 
      * @param testAddRequest
      * @param request
      * @return
@@ -62,97 +68,99 @@ public class TestController {
     @PostMapping("/add")
     @Transactional(rollbackFor = Exception.class)
     public BaseResponse<Long> addTestUsingPost(@RequestBody TestAddRequest testAddRequest, HttpServletRequest request) {
-        //判断测验表的信息是否为空
+        // 判断测验表的信息是否为空
         if (testAddRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"测验表信息为空！");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "测验表信息为空！");
         }
-        //将信息复制给Test实体类
+        // 将信息复制给Test实体类
         Test test = new Test();
         BeanUtils.copyProperties(testAddRequest, test);
 
-        //判断问题是否空
+        // 判断问题是否空
         List<TestQuestionsRequest> questions = testAddRequest.getQuestions();
         List<Long> questionIds;
-        //判断问题是否为空
+        // 判断问题是否为空
         if (questions != null && !questions.isEmpty()) {
             questionIds = questions.stream().map(TestQuestionsRequest::getId).collect(Collectors.toList());
-        }else {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"无测验题目，无法创建测试！");
+        } else {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "无测验题目，无法创建测试！");
         }
 
-        if (!questionIds.isEmpty()){
-            //判断是否在问题表里面
+        if (!questionIds.isEmpty()) {
+            // 判断是否在问题表里面
             long count = questionService.count(new QueryWrapper<Question>()
                     .in("id", questionIds));
-            if(count <=0 ) throw new BusinessException(ErrorCode.PARAMS_ERROR, "存在测试题目不在题库中，无法创建测试！");
-        }else{
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"无测验题目，无法创建测试！");
+            if (count <= 0)
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "存在测试题目不在题库中，无法创建测试！");
+        } else {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "无测验题目，无法创建测试！");
         }
 
-        //获取用户信息
+        // 获取用户信息
         User loginUser = userService.getLoginUser(request);
 
-        //将测试信息存入测试表
-            // 将列表转换为JSON字符串
+        // 将测试信息存入测试表
+        // 将列表转换为JSON字符串
         String jsonQuestionIds = GSON.toJson(questionIds);
         test.setQuestionsId(jsonQuestionIds);
         test.setCreatUserId(loginUser.getId());
-        if(!testService.save(test)){
-            throw new BusinessException(ErrorCode.OPERATION_ERROR,"存入测验信息失败！");
+        if (!testService.save(test)) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "存入测验信息失败！");
         }
 
-        //将问题信息存入测试问题关联表
-            //每个进行转换，加入testid
-        if(isSaveQuestions(questions, test.getId())){
-            throw new BusinessException(ErrorCode.OPERATION_ERROR,"存入测验关联问题信息失败！");
+        // 将问题信息存入测试问题关联表
+        // 每个进行转换，加入testid
+        if (isSaveQuestions(questions, test.getId())) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "存入测验关联问题信息失败！");
         }
 
-        return ResultUtils.success(test.getId(),"创建测验成功！");
+        return ResultUtils.success(test.getId(), "创建测验成功！");
     }
-
 
     /**
      * 更新测验数据
+     * 
      * @param testUpdateRequest
      * @return
      */
     @PostMapping("/add/update")
     @Transactional(rollbackFor = Exception.class)
     public BaseResponse<Boolean> updateTestUsingPost(@RequestBody TestUpdateRequest testUpdateRequest) {
-        //判断测验表的信息是否为空
+        // 判断测验表的信息是否为空
         if (testUpdateRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"测验表信息为空！");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "测验表信息为空！");
         }
 
-        //检测更新id是否已经存在，不存在返回
-        if((testService.getOne(new QueryWrapper<Test>().eq("id",testUpdateRequest.getId()))) == null){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"无此测验id，无法更新！");
+        // 检测更新id是否已经存在，不存在返回
+        if ((testService.getOne(new QueryWrapper<Test>().eq("id", testUpdateRequest.getId()))) == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "无此测验id，无法更新！");
         }
 
-        //将信息复制给Test实体类
+        // 将信息复制给Test实体类
         Test test = new Test();
         BeanUtils.copyProperties(testUpdateRequest, test);
 
-        //判断问题是否空
+        // 判断问题是否空
         List<TestQuestionsRequest> questions = testUpdateRequest.getQuestions();
         List<Long> questionIds;
-        //判断问题是否为空
+        // 判断问题是否为空
         if (questions != null && !questions.isEmpty()) {
             questionIds = questions.stream().map(TestQuestionsRequest::getId).collect(Collectors.toList());
-        }else {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"无测验题目，无法更新测试！");
+        } else {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "无测验题目，无法更新测试！");
         }
 
-        if (!questionIds.isEmpty()){
-            //判断是否在问题表里面
+        if (!questionIds.isEmpty()) {
+            // 判断是否在问题表里面
             long count = questionService.count(new QueryWrapper<Question>()
                     .in("id", questionIds));
-            if(count <=0 ) throw new BusinessException(ErrorCode.PARAMS_ERROR, "存在测试题目不在题库中，无法更新测试！");
-        }else{
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"无测验题目，无法更新测试！");
+            if (count <= 0)
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "存在测试题目不在题库中，无法更新测试！");
+        } else {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "无测验题目，无法更新测试！");
         }
 
-        //将测试信息存入测试表
+        // 将测试信息存入测试表
         // 创建Gson实例
         Gson gson = new Gson();
         // 将列表转换为JSON字符串
@@ -160,14 +168,14 @@ public class TestController {
         test.setQuestionsId(jsonQuestionIds);
         testService.updateById(test);
 
-        //将问题信息存入测试问题关联表
-        //每个进行转换，加入testid
+        // 将问题信息存入测试问题关联表
+        // 每个进行转换，加入testid
         testQuestionService.remove(new LambdaQueryWrapper<TestQuestions>().eq(TestQuestions::getTestId, test.getId()));
-        if(isSaveQuestions(questions, test.getId())){
-            throw new BusinessException(ErrorCode.OPERATION_ERROR,"存入测验关联问题信息失败！");
+        if (isSaveQuestions(questions, test.getId())) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "存入测验关联问题信息失败！");
         }
 
-        return ResultUtils.success(true,"问题更新成功！");
+        return ResultUtils.success(true, "问题更新成功！");
     }
 
     /**
@@ -187,13 +195,15 @@ public class TestController {
 
     /**
      * 获取测验信息
+     * 
      * @param number
      * @return
      */
     @PostMapping("/get")
-    public BaseResponse<TestAddRequest> getTestById(@RequestParam long number){
+    public BaseResponse<TestAddRequest> getTestById(@RequestParam long number) {
         Test test = testService.getById(number);
-        List<TestQuestions> questions = testQuestionService.list(new LambdaQueryWrapper<TestQuestions>().eq(TestQuestions::getTestId, number));
+        List<TestQuestions> questions = testQuestionService
+                .list(new LambdaQueryWrapper<TestQuestions>().eq(TestQuestions::getTestId, number));
         List<TestQuestionsRequest> testQuestionsRequestStream = questions.stream().map(question -> {
             TestQuestionsRequest testQuestionsRequest = new TestQuestionsRequest();
             BeanUtils.copyProperties(question, testQuestionsRequest);
@@ -209,21 +219,22 @@ public class TestController {
 
     /**
      * 分页查询测验信息（支持按标题模糊匹配）
-     * @param current 当前页
+     * 
+     * @param current  当前页
      * @param pageSize 每页大小
-     * @param title 可选标题关键词（匹配测验标题）
+     * @param title    可选标题关键词（匹配测验标题）
      */
     @PostMapping("/list/page")
     public BaseResponse<IPage<TestPageVO>> listTestByPage(
             @RequestParam int current,
             @RequestParam int pageSize,
-            @RequestParam(required = false) String title) {  // 关键修改：添加可选参数
+            @RequestParam(required = false) String title) { // 关键修改：添加可选参数
 
         QueryWrapper<Test> queryWrapper = new QueryWrapper<>();
 
         // 添加标题模糊匹配条件（如果参数不为空）
         if (StringUtils.isNotBlank(title)) {
-            queryWrapper.like("title", title);  // 假设字段名为title
+            queryWrapper.like("title", title); // 假设字段名为title
         }
 
         // 构建分页查询条件
@@ -242,15 +253,73 @@ public class TestController {
 
         return ResultUtils.success(testPageVOPage);
     }
+
     /**
      * 删除测验信息
      */
     @PostMapping("/delete")
-    public BaseResponse<TestAddRequest> deleteTestById(@RequestParam long number){
+    public BaseResponse<TestAddRequest> deleteTestById(@RequestParam long number) {
         testService.removeById(number);
         testQuestionService.remove(new LambdaQueryWrapper<TestQuestions>().eq(TestQuestions::getTestId, number));
         return ResultUtils.success("删除测验信息成功！");
     }
+
+    /**
+     * 创建设置测验的可见班级（批量设置）
+     * 
+     * @param testSetClassesRequest
+     * @return
+     */
+    @PostMapping("/setClasses")
+    @Transactional(rollbackFor = Exception.class)
+    public BaseResponse<Boolean> setTestClassesUsingPost(@RequestBody TestSetClassesRequest testSetClassesRequest) {
+        // 判断请求参数是否为空
+        if (testSetClassesRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空！");
+        }
+
+        Long testId = testSetClassesRequest.getTestId();
+        List<Long> classIds = testSetClassesRequest.getClassIds();
+
+        // 验证测验ID
+        if (testId == null || testId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "测验ID不能为空！");
+        }
+
+        // 验证测验是否存在
+        Test test = testService.getById(testId);
+        if (test == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "测验不存在！");
+        }
+
+        // 如果班级ID列表不为空，验证班级是否存在
+        if (classIds != null && !classIds.isEmpty()) {
+            // 验证班级ID是否有效
+            long validClassCount = classService.count(new QueryWrapper<Classes>()
+                    .in("id", classIds));
+            if (validClassCount != classIds.size()) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "存在无效的班级ID！");
+            }
+        }
+
+        // 删除该测验的所有现有班级关联
+        testClassService.remove(new LambdaQueryWrapper<TestClass>()
+                .eq(TestClass::getTestId, testId));
+
+        // 如果班级ID列表不为空，批量插入新的关联
+        if (classIds != null && !classIds.isEmpty()) {
+            List<TestClass> testClassList = classIds.stream().map(classId -> {
+                TestClass testClass = new TestClass();
+                testClass.setTestId(testId);
+                testClass.setClassId(classId);
+                return testClass;
+            }).collect(Collectors.toList());
+
+            if (!testClassService.saveBatch(testClassList)) {
+                throw new BusinessException(ErrorCode.OPERATION_ERROR, "保存测验班级关联失败！");
+            }
+        }
+
+        return ResultUtils.success(true, "设置测验可见班级成功！");
+    }
 }
-
-
