@@ -239,40 +239,6 @@ public class TestController {
         // 获取当前登录用户
         User loginUser = userService.getLoginUser(request);
 
-        // 查询当前用户所在的班级ID列表
-        List<ClassStudent> classStudentList = classStudentService.list(
-                new LambdaQueryWrapper<ClassStudent>()
-                        .eq(ClassStudent::getStudentId, loginUser.getId()));
-
-        // 如果用户不在任何班级，返回空列表
-        if (classStudentList == null || classStudentList.isEmpty()) {
-            Page<TestPageVO> emptyPage = new Page<>(current, pageSize, 0);
-            return ResultUtils.success(emptyPage);
-        }
-
-        // 提取班级ID列表
-        List<Long> classIds = classStudentList.stream()
-                .map(ClassStudent::getClassId)
-                .distinct()
-                .collect(Collectors.toList());
-
-        // 根据班级ID查询关联的测验ID列表
-        List<TestClass> testClassList = testClassService.list(
-                new LambdaQueryWrapper<TestClass>()
-                        .in(TestClass::getClassId, classIds));
-
-        // 如果没有任何关联的测验，返回空列表
-        if (testClassList == null || testClassList.isEmpty()) {
-            Page<TestPageVO> emptyPage = new Page<>(current, pageSize, 0);
-            return ResultUtils.success(emptyPage);
-        }
-
-        // 提取测验ID列表
-        List<Long> testIds = testClassList.stream()
-                .map(TestClass::getTestId)
-                .distinct()
-                .collect(Collectors.toList());
-
         // 构建查询条件
         QueryWrapper<Test> queryWrapper = new QueryWrapper<>();
 
@@ -281,8 +247,48 @@ public class TestController {
             queryWrapper.like("title", title);
         }
 
-        // 添加测验ID过滤条件（只查询与用户班级关联的测验）
-        queryWrapper.in("id", testIds);
+        // 根据用户角色决定是否按班级过滤
+        String userRole = loginUser.getUserRole();
+        if ("student".equals(userRole)) {
+            // 学生角色：按班级过滤
+            // 查询当前用户所在的班级ID列表
+            List<ClassStudent> classStudentList = classStudentService.list(
+                    new LambdaQueryWrapper<ClassStudent>()
+                            .eq(ClassStudent::getStudentId, loginUser.getId()));
+
+            // 如果用户不在任何班级，返回空列表
+            if (classStudentList == null || classStudentList.isEmpty()) {
+                Page<TestPageVO> emptyPage = new Page<>(current, pageSize, 0);
+                return ResultUtils.success(emptyPage);
+            }
+
+            // 提取班级ID列表
+            List<Long> classIds = classStudentList.stream()
+                    .map(ClassStudent::getClassId)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            // 根据班级ID查询关联的测验ID列表
+            List<TestClass> testClassList = testClassService.list(
+                    new LambdaQueryWrapper<TestClass>()
+                            .in(TestClass::getClassId, classIds));
+
+            // 如果没有任何关联的测验，返回空列表
+            if (testClassList == null || testClassList.isEmpty()) {
+                Page<TestPageVO> emptyPage = new Page<>(current, pageSize, 0);
+                return ResultUtils.success(emptyPage);
+            }
+
+            // 提取测验ID列表
+            List<Long> testIds = testClassList.stream()
+                    .map(TestClass::getTestId)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            // 添加测验ID过滤条件（只查询与用户班级关联的测验）
+            queryWrapper.in("id", testIds);
+        }
+        // teacher 角色：不添加班级过滤条件，返回全部测验
 
         // 构建分页查询条件
         Page<Test> testPage = testService.page(
