@@ -354,9 +354,8 @@ public class TestController {
             }
         }
 
-        // 删除该测验的所有现有班级关联
-        testClassService.remove(new LambdaQueryWrapper<TestClass>()
-                .eq(TestClass::getTestId, testId));
+        // 删除该测验的所有现有班级关联（物理删除，不走逻辑删除）
+        testClassService.removeByTestIdPhysical(testId);
 
         // 如果班级ID列表不为空，批量插入新的关联
         if (classIds != null && !classIds.isEmpty()) {

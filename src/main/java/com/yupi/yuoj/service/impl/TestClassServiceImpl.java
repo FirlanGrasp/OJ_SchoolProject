@@ -15,4 +15,11 @@ import org.springframework.stereotype.Service;
 public class TestClassServiceImpl extends ServiceImpl<TestClassMapper, TestClass>
         implements TestClassService {
 
+    /**
+     * 物理删除：根据 testId 直接 DELETE，不走逻辑删除
+     */
+    @Override
+    public boolean removeByTestIdPhysical(Long testId) {
+        return this.baseMapper.deleteByTestIdPhysical(testId) >= 0;
+    }
 }

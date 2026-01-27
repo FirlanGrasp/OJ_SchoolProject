@@ -1,7 +1,7 @@
 package com.yupi.yuoj.service;
 
-import com.yupi.yuoj.model.entity.TestClass;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.yupi.yuoj.model.entity.TestClass;
 
 /**
 * @author localAccount
@@ -10,4 +10,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface TestClassService extends IService<TestClass> {
 
+    /**
+     * 物理删除：根据 testId 删除关联记录（不走逻辑删除）
+     */
+    boolean removeByTestIdPhysical(Long testId);
 }
