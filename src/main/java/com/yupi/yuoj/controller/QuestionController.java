@@ -20,6 +20,7 @@ import com.yupi.yuoj.model.vo.QuestionSubmitVO;
 import com.yupi.yuoj.model.vo.QuestionVO;
 import com.yupi.yuoj.service.QuestionService;
 import com.yupi.yuoj.service.QuestionSubmitService;
+import com.yupi.yuoj.service.TestQuestionService;
 import com.yupi.yuoj.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -48,6 +49,9 @@ public class QuestionController {
 
     @Resource
     private QuestionSubmitService questionSubmitService;
+
+    @Resource
+    private TestQuestionService testQuestionService;
 
     private final static Gson GSON = new Gson();
 
@@ -254,6 +258,22 @@ public class QuestionController {
     }
 
     // endregion
+
+    /**
+     * 判断题目是否被测验使用
+     *
+     * @param request 只包含题目ID的请求体
+     */
+    @PostMapping("/check")
+    public BaseResponse<Boolean> checkQuestionUsedByTests(@RequestBody QuestionCheckRequest request) {
+        if (request == null || request.getQuestionId() == null || request.getQuestionId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "题目ID非法");
+        }
+        Long questionId = request.getQuestionId();
+        boolean used = testQuestionService.isQuestionUsedByTests(questionId);
+        String message = used ? "该题目已被测验关联" : "该题目未被任何测验关联";
+        return ResultUtils.success(used, message);
+    }
 
     /**
      * 编辑（用户）

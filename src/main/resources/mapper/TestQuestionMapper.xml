@@ -5,13 +5,13 @@
 <mapper namespace="com.yupi.yuoj.mapper.TestQuestionMapper">
 
     <resultMap id="BaseResultMap" type="com.yupi.yuoj.model.entity.TestQuestions">
-            <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="testId" column="testId" jdbcType="BIGINT"/>
-            <result property="questionId" column="questionId" jdbcType="BIGINT"/>
-            <result property="title" column="title" jdbcType="VARCHAR"/>
-            <result property="score" column="score" jdbcType="INTEGER"/>
-            <result property="type" column="type" jdbcType="VARCHAR"/>
-            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="testId" column="testId" jdbcType="BIGINT"/>
+        <result property="questionId" column="questionId" jdbcType="BIGINT"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="score" column="score" jdbcType="INTEGER"/>
+        <result property="type" column="type" jdbcType="VARCHAR"/>
+        <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -19,4 +19,12 @@
         title,score,type,
         isDelete
     </sql>
+
+    <!-- 统计某个题目被多少个测验关联（仅统计未删除记录） -->
+    <select id="countByQuestionId" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM test_question
+        WHERE questionId = #{questionId}
+          AND isDelete = 0
+    </select>
 </mapper>
