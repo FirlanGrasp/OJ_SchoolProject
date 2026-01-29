@@ -43,6 +43,9 @@ public class ClassController {
     @Resource
     private ClassStudentService classStudentService;
 
+    @Resource
+    private TestClassService testClassService;
+
     private final static Gson GSON = new Gson();
 
     /**
@@ -135,14 +138,26 @@ public class ClassController {
 
     /**
      * 删除班级
-     * @param id
+     * @param id 班级ID
      * @return
      */
     @PostMapping("/delete")
     @Transactional(rollbackFor = Exception.class)
     public BaseResponse<?> deleteClassUsingPost(Long id) {
+        // 校验参数
+        if (id == null || id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "班级ID非法");
+        }
+
+        // 删除班级本身
         classService.removeById(id);
-        classStudentService.remove(new LambdaQueryWrapper<ClassStudent>().eq(ClassStudent::getClassId, id));
+        // 删除 class_student 关联表中该班级的学生关联
+        classStudentService.remove(new LambdaQueryWrapper<ClassStudent>()
+                .eq(ClassStudent::getClassId, id));
+        // 同步删除 test_class 关联表中含有该班级 classId 的所有记录
+        testClassService.remove(new LambdaQueryWrapper<TestClass>()
+                .eq(TestClass::getClassId, id));
+
         return ResultUtils.success("删除成功");
     }
 
