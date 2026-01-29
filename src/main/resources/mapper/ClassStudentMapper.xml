@@ -5,18 +5,30 @@
 <mapper namespace="com.yupi.yuoj.mapper.ClassStudentMapper">
 
     <resultMap id="BaseResultMap" type="com.yupi.yuoj.model.entity.ClassStudent">
-            <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="classId" column="classId" jdbcType="BIGINT"/>
-            <result property="studentId" column="studentId" jdbcType="BIGINT"/>
-            <result property="userAccount" column="userAccount" jdbcType="VARCHAR"/>
-            <result property="number" column="number" jdbcType="VARCHAR"/>
-            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
-            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
-            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="classId" column="classId" jdbcType="BIGINT"/>
+        <result property="studentId" column="studentId" jdbcType="BIGINT"/>
+        <result property="userAccount" column="userAccount" jdbcType="VARCHAR"/>
+        <result property="number" column="number" jdbcType="VARCHAR"/>
+        <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+        <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,classId,studentId,userAccount,number,
         createTime,updateTime,isDelete
     </sql>
+
+    <!-- 查询指定学生列表的历史班级关联（isDelete = 1），绕过逻辑删除插件 -->
+    <select id="listRemovedByStudentIds" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM class_student
+        WHERE studentId IN
+        <foreach collection="studentIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND isDelete = 1
+    </select>
 </mapper>

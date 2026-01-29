@@ -11,11 +11,16 @@ import com.yupi.yuoj.constant.UserConstant;
 import com.yupi.yuoj.exception.BusinessException;
 import com.yupi.yuoj.exception.ThrowUtils;
 import com.yupi.yuoj.model.dto.user.*;
+import com.yupi.yuoj.model.entity.ClassStudent;
 import com.yupi.yuoj.model.entity.User;
 import com.yupi.yuoj.model.vo.LoginUserVO;
 import com.yupi.yuoj.model.vo.UserVO;
+import com.yupi.yuoj.service.ClassStudentService;
 import com.yupi.yuoj.service.UserService;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,6 +50,9 @@ public class UserController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private ClassStudentService classStudentService;
 
     @Resource
     private WxOpenConfig wxOpenConfig;
@@ -307,6 +315,30 @@ public class UserController {
         long size = userQueryRequest.getPageSize();
         Page<User> userPage = userService.page(new Page<>(current, size),
                 userService.getQueryWrapper(userQueryRequest));
+
+        // 为每个学生补充 removedClassIds：曾经属于但现在已不在的班级 ID 列表（class_student 表中 isDelete = 1）
+        List<User> records = userPage.getRecords();
+        if (records != null && !records.isEmpty()) {
+            List<Long> studentIds = records.stream()
+                    .map(User::getId)
+                    .collect(Collectors.toList());
+
+            // 查询 class_student 表中已删除的关联记录（通过自定义 SQL，绕过逻辑删除插件）
+            List<ClassStudent> removedRelations = classStudentService.listRemovedByStudentIds(studentIds);
+
+            Map<Long, List<Long>> removedMap = removedRelations.stream()
+                    .collect(Collectors.groupingBy(
+                            ClassStudent::getStudentId,
+                            Collectors.mapping(ClassStudent::getClassId, Collectors.toList())
+                    ));
+
+            // 将结果写回到每个用户的非持久化字段 removedClassIds 中
+            records.forEach(user -> {
+                List<Long> removedClassIds = removedMap.getOrDefault(user.getId(), Collections.emptyList());
+                user.setRemovedClassIds(removedClassIds);
+            });
+        }
+
         return ResultUtils.success(userPage);
     }
 

@@ -1,7 +1,8 @@
 package com.yupi.yuoj.service;
 
-import com.yupi.yuoj.model.entity.ClassStudent;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.yupi.yuoj.model.entity.ClassStudent;
+import java.util.List;
 
 /**
 * @author localAccount
@@ -10,4 +11,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface ClassStudentService extends IService<ClassStudent> {
 
+    /**
+     * 查询指定学生列表的历史班级关联（isDelete = 1）
+     */
+    List<ClassStudent> listRemovedByStudentIds(List<Long> studentIds);
 }
