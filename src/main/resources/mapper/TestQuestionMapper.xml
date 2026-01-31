@@ -20,11 +20,13 @@
         isDelete
     </sql>
 
-    <!-- 统计某个题目被多少个测验关联（仅统计未删除记录） -->
+    <!-- 统计某个题目被多少个未删除的测验关联（仅统计 test_question 未删除且测验 test 未删除） -->
     <select id="countByQuestionId" resultType="java.lang.Integer">
         SELECT COUNT(*)
-        FROM test_question
-        WHERE questionId = #{questionId}
-          AND isDelete = 0
+        FROM test_question tq
+        INNER JOIN test t ON tq.testId = t.id
+        WHERE tq.questionId = #{questionId}
+          AND tq.isDelete = 0
+          AND t.isDelete = 0
     </select>
 </mapper>
