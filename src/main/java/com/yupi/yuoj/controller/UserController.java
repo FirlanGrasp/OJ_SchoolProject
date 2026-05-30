@@ -39,9 +39,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 用户接口
- *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
  */
 @RestController
 @RequestMapping("/user")
@@ -106,6 +103,7 @@ public class UserController {
      * 用户批量注册
      */
     @PostMapping("/add/batch")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<?> addUserBatchUsingPost(@RequestBody List<UserRegisterRequest> userRegisterRequestList) {
         if (userRegisterRequestList == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
